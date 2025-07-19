@@ -1,0 +1,24 @@
+body {
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+}
+.card {
+  border-radius: 15px;
+}
+.hidden {
+  display: none;
+}
+.avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}

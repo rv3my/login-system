@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+‎<html lang="en">
+‎<head>
+‎  <meta charset="UTF-8">
+‎  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+‎  <title>Premium Login & Signup System</title>
+‎  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+‎  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+‎  <style>
+‎    body {
+‎      background: linear-gradient(to right, #667eea, #764ba2);
+‎      color: #fff;
+‎      font-family: 'Segoe UI', sans-serif;
+‎      min-height: 100vh;
+‎      display: flex;
+‎      align-items: center;
+‎      justify-content: center;
+‎      flex-direction: column;
+‎      padding: 20px;
+‎    }
+‎    .card {
+‎      border-radius: 15px;
+‎    }
+‎    .hidden {
+‎      display: none;
+‎    }
+‎    .avatar {
+‎      width: 100px;
+‎      height: 100px;
+‎      object-fit: cover;
+‎      border-radius: 50%;
+‎      margin-bottom: 10px;
+‎    }
+‎  </style>
+‎</head>
+‎<body>
+‎  <div class="card p-4 text-dark" style="max-width: 400px; width: 100%;">
+‎    <h3 class="text-center mb-3">Signup</h3>
+‎    <form id="signupForm">
+‎      <input type="text" id="signupUser" class="form-control mb-2" placeholder="Username" required>
+‎      <input type="email" id="signupEmail" class="form-control mb-2" placeholder="Email" required>
+‎      <input type="password" id="signupPass" class="form-control mb-2" placeholder="Password" required>
+‎      <input type="file" id="signupAvatar" class="form-control mb-2">
+‎      <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+‎    </form>
+‎  </div>
+‎
+‎  <div class="card p-4 mt-4 text-dark" style="max-width: 400px; width: 100%;">
+‎    <h3 class="text-center mb-3">Login</h3>
+‎    <form id="loginForm">
+‎      <input type="text" id="loginUser" class="form-control mb-2" placeholder="Username" required>
+‎      <input type="password" id="loginPass" class="form-control mb-2" placeholder="Password" required>
+‎      <div class="form-check mb-2">
+‎        <input type="checkbox" class="form-check-input" id="rememberMe">
+‎        <label class="form-check-label" for="rememberMe">Remember me</label>
+‎      </div>
+‎      <button type="submit" class="btn btn-success w-100">Login</button>
+‎    </form>
+‎  </div>
+‎
+‎  <div class="card p-4 mt-4 hidden text-dark" id="dashboard" style="max-width: 400px; width: 100%;">
+‎    <img id="userAvatar" class="avatar" src="" alt="Avatar">
+‎    <h4>Welcome, <span id="userName"></span>!</h4>
+‎    <p>Email: <span id="userEmail"></span></p>
+‎    <button onclick="logout()" class="btn btn-danger w-100 mt-3">Logout</button>
+‎  </div>
+‎
+‎  <script>
+‎    const signupForm = document.getElementById('signupForm');
+‎    const loginForm = document.getElementById('loginForm');
+‎    const dashboard = document.getElementById('dashboard');
+‎    const userName = document.getElementById('userName');
+‎    const userEmail = document.getElementById('userEmail');
+‎    const userAvatar = document.getElementById('userAvatar');
+‎
+‎    function hash(password) {
+‎      return CryptoJS.SHA256(password).toString();
+‎    }
+‎
+‎    signupForm.onsubmit = function(e) {
+‎      e.preventDefault();
+‎      const username = document.getElementById('signupUser').value;
+‎      const email = document.getElementById('signupEmail').value;
+‎      const password = document.getElementById('signupPass').value;
+‎      const avatarFile = document.getElementById('signupAvatar').files[0];
+‎
+‎      if (localStorage.getItem(`user_${username}`)) {
+‎        return alert('Username already exists.');
+‎      }
+‎
+‎      const reader = new FileReader();
+‎      reader.onload = function() {
+‎        const avatarData = reader.result;
+‎        const userData = {
+‎          username,
+‎          email,
+‎          password: hash(password),
+‎          avatar: avatarData
+‎        };
+‎        localStorage.setItem(`user_${username}`, JSON.stringify(userData));
+‎        alert('Signup successful!');
+‎        signupForm.reset();
+‎      };
+‎      if (avatarFile) reader.readAsDataURL(avatarFile);
+‎      else reader.onload(); // fallback if no file
+‎    };
+‎
+‎    loginForm.onsubmit = function(e) {
+‎      e.preventDefault();
+‎      const username = document.getElementById('loginUser').value;
+‎      const password = hash(document.getElementById('loginPass').value);
+‎      const remember = document.getElementById('rememberMe').checked;
+‎      const user = JSON.parse(localStorage.getItem(`user_${username}`));
+‎
+‎      if (user && user.password === password) {
+‎        sessionStorage.setItem('loggedInUser', username);
+‎        if (remember) localStorage.setItem('rememberUser', username);
+‎        loadDashboard(user);
+‎      } else {
+‎        alert('Invalid username or password');
+‎      }
+‎    };
+‎
+‎    function loadDashboard(user) {
+‎      document.querySelector('.card').classList.add('hidden');
+‎      loginForm.parentElement.classList.add('hidden');
+‎      signupForm.parentElement.classList.add('hidden');
+‎      dashboard.classList.remove('hidden');
+‎      userName.textContent = user.username;
+‎      userEmail.textContent = user.email;
+‎      userAvatar.src = user.avatar || '';
+‎    }
+‎
+‎    function logout() {
+‎      sessionStorage.removeItem('loggedInUser');
+‎      localStorage.removeItem('rememberUser');
+‎      location.reload();
+‎    }
+‎
+‎    // Auto login if remembered
+‎    const rememberedUser = localStorage.getItem('rememberUser');
+‎    const sessionUser = sessionStorage.getItem('loggedInUser');
+‎    const activeUser = rememberedUser || sessionUser;
+‎
+‎    if (activeUser) {
+‎      const user = JSON.parse(localStorage.getItem(`user_${activeUser}`));
+‎      if (user) loadDashboard(user);
+‎    }
+‎  </script>
+‎</body>
+‎</html>
